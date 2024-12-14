@@ -18,14 +18,12 @@ end
 function to_theory(theory::ThDecapode, type::HomType, name::String)
     @match replace(name," " => "") begin
         "∂t" || "∂ₜ" => :∂ₜ
-        # "∂ₜ" => :∂ₜ
         "Δ" => :Δ
         "Δ⁻¹" => :Δ⁻¹
         "d*" || "d̃₁" => :dual_d₁
         "⋆" || "⋆₁" || "★₁" || "★1" => :⋆₁
         "⋆⁻¹" || "⋆₀⁻¹" => :⋆₀⁻¹
         "★" || "★⁻¹" => :⋆₁
-        "diffusivity" => :diffusivity
         "d" || "d₀" || "d01" => :d₀
         "d12" => :d₁
         "⋆2" => :⋆₂
