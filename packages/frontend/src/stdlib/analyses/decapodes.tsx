@@ -67,11 +67,14 @@ export function configureDecapodes(options: {
 /** Analyze a DEC diagram by performing a simulation using Decapodes.jl.
  */
 export function Decapodes(props: DiagramAnalysisProps<DecapodesContent>) {
+
+
     // Step 1: Start the Julia kernel.
     const [kernel, restartKernel] = createJuliaKernel({
         baseUrl: "http://127.0.0.1:8888",
         token: "",
     });
+
 
     // Step 2: Run initialization code in the kernel.
     const startedKernel = () => (kernel.error ? undefined : kernel());
@@ -92,9 +95,11 @@ export function Decapodes(props: DiagramAnalysisProps<DecapodesContent>) {
         initedKernel,
         () => {
             const simulationData = makeSimulationData(props.liveDiagram, props.content);
+			console.log(simulationData)
             if (!simulationData) {
                 return undefined;
             }
+			console.log("making sim code")
             return makeSimulationCode(simulationData);
         },
         (data: PDEPlotData2D) => data,
@@ -351,7 +356,7 @@ const makeSimulationCode = (data: SimulationData) =>
 
     f = simulator(system.geometry.dualmesh, system.generate, DiagonalHodge());
 
-    soln = run_sim(f, system.init, 50.0, ComponentArray(k=0.5,));
+    soln = run_sim(f, system.init, 10.0, ComponentArray(k=0.5,));
 
     JsonValue(SimResult(soln, system))
     `;

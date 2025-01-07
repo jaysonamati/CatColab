@@ -129,7 +129,7 @@ function grid(pt3::Point3, grid_size::Vector{Int})
 end
 
 function state_at_time(soln::ODESolution, domain::Sphere, var::Symbol, t::Int, points)
-    l , _ = indexing_bounds(domain) # TODO this is hardcoded to return 100, 100
+    l , _ = indexing_bounds(domain)
     northern_indices = filter(i -> points[i][3] > 0, keys(points)) 
     map(northern_indices) do n
         i, j = grid(points[n], [l, l]) # TODO

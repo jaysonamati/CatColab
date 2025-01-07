@@ -15,6 +15,9 @@ import OrdinaryDiffEq: ReturnCode
 
 const KEYS = Set([:mesh, :plotVariables, :initialConditions, :domain, :diagram, :model, :scalars])
 
+readablesize(x) =  Base.format_bytes(Base.summarysize(x))
+
+
 # load data
 data = open(JSON3.read, joinpath(@__DIR__, "test_jsons", "diffusivity_constant.json"), "r")
 jsondiagram = data[:diagram]
@@ -84,7 +87,6 @@ end
 
 end
 
-# # GOOD
 @testset "Parsing the Model JSON Object - Diffusivity Constant" begin
     
     data = open(JSON3.read, joinpath(@__DIR__, "test_jsons", "diffusivity_constant.json"), "r")
@@ -112,6 +114,29 @@ end
 
     @test model.data["01936f2c-dba6-7c7b-8ec0-811bbe06bad4" ] == ModelElement(;name=:Form0, val=nothing)
     
+end
+
+@testset "Simulation - Navier-Stokes vorticity" begin
+
+    json_string = read(joinpath(@__DIR__, "test_jsons", "ns_vorticity_2.json"), String);
+    system = PodeSystem(json_string);
+
+    simulator = evalsim(system.pode)
+    f = simulator(system.geometry.dualmesh, system.generate, DiagonalHodge())
+
+    @time soln = run_sim(f, system.init, 10.0, ComponentArray(k=0.5,));
+    @time soln2 = run_sim(f, system.init, 50.0, ComponentArray(k=0.5,));
+
+    result = SimResult(soln, system);
+    result2 = SimResult(soln2, system);
+
+    @test soln.retcode == ReturnCode.Success
+
+    jvs2 = JsonValue(result2);
+    jvs = JsonValue(result);
+
+    @info "$(readablesize(jvs)) and $(readablesize(jvs2))"
+
 end
 
 #= XXX ERRORING
@@ -206,10 +231,13 @@ end
     @test soln.retcode == ReturnCode.Success
  
     result = SimResult(soln, system)
+    @info "diffusion: $(size.(values(result.state)))"
 
     @test typeof(result.state) == Dict{String, Vector{AbstractArray{SVector{3, Float64}}}}
 
     jv = JsonValue(result)
+    @info "$(readablesize(jv))"
+
 
 end
 

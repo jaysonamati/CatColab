@@ -67,10 +67,12 @@ export function executeAndRetrieve<S, T>(
 ): [Resource<T | undefined>, ResourceRefetch<T>] {
     const [data, { refetch: reexecute }] = createResource(kernel, async (kernel) => {
         // Request that kernel execute code, if defined.
-        const code = executeCode();
+        
+		const code = executeCode();
         if (code === undefined) {
             return undefined;
         }
+
         const future = kernel.requestExecute({ code });
 
         // Set up handler for result from kernel.
