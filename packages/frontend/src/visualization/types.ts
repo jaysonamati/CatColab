@@ -11,6 +11,7 @@ export type ArrowStyle =
     | "plus"
     | "minus"
     | "indeterminate"
+	| "delay"
     | "scalar";
 
 /** Prop for forwarding a ref to an `<svg>` element.

@@ -23,6 +23,7 @@
 .arrow.plus,
 .arrow.minus,
 .arrow.indeterminate,
+.arrow.delay,
 .arrow.scalar {
     &:before,
     &:after {
@@ -74,6 +75,16 @@
         position: absolute;
         right: -7.5px;
         bottom: 0px;
+    }
+}
+
+.arrowContainer.delay {
+    &:after {
+        content: "//";
+        transform: none;
+        position: absolute;
+        right: 7.5px;
+        bottom: -10px;
     }
 }
 

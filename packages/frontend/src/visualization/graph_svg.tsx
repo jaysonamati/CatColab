@@ -71,7 +71,7 @@ export function EdgeSVG<Id>(props: { edge: GraphLayout.Edge<Id> }) {
     };
     const defaultPath = () => <path marker-end={markerUrl()} d={path()} />;
 
-    const tgtLabel = (text: string) => {
+	const tgtLabel = (text: string) => {
         // Place the target label offset from the target in the direction
         // orthogonal to the vector from the source to the target.
         const [srcPos, tgtPos] = [props.edge.sourcePos, props.edge.targetPos];
@@ -82,6 +82,21 @@ export function EdgeSVG<Id>(props: { edge: GraphLayout.Edge<Id> }) {
             <text class="label" x={pos.x} y={pos.y} dominant-baseline="middle" text-anchor="middle">
                 {text}
             </text>
+        );
+    };
+    const centerLabel = (text: string) => {
+        // Place the target label offset from the target in the direction
+        // orthogonal to the vector from the source to the target.
+        const [srcPos, tgtPos] = [props.edge.sourcePos, props.edge.targetPos];
+        const vec = { x: tgtPos.x - srcPos.x, y: tgtPos.y - srcPos.y };
+        const scale = 10 / Math.sqrt(vec.x ** 2 + vec.y ** 2);
+        const pos = { x: tgtPos.x - scale * vec.y, y: tgtPos.y + scale * vec.x };
+        return (
+			<text class="label" x={props.edge.labelPos?.x} y={props.edge.labelPos?.y} dominant-baseline="middle"
+                    text-anchor="middle"
+                >
+				{text}
+                </text>
         );
     };
 
@@ -104,6 +119,11 @@ export function EdgeSVG<Id>(props: { edge: GraphLayout.Edge<Id> }) {
                 <Match when={props.edge.style === "indeterminate"}>
                     {defaultPath()}
                     {tgtLabel("?")}
+                </Match>
+				<Match when={props.edge.style === "delay"}>
+                    {defaultPath()}
+					{centerLabel("//")}
+                    {tgtLabel("+")}
                 </Match>
                 <Match when={props.edge.style === "scalar"}>
                     {defaultPath()}
@@ -186,6 +206,7 @@ const styleToMarker: Record<ArrowStyle, ArrowMarker> = {
     plus: "triangle",
     minus: "triangle",
     indeterminate: "triangle",
+	delay: "triangle",
     scalar: "triangle",
 };
 

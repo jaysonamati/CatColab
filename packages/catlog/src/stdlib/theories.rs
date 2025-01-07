@@ -43,6 +43,30 @@ pub fn th_signed_category() -> UstrDiscreteDblTheory {
     DiscreteDblTheory::from(sgn)
 }
 
+/** The theory of a product of signed categories.
+
+A *signed category* is a category sliced over the group of (nonzero) signs. Free
+signed categories are signed graphs, a simple mathematical model of [regulatory
+networks](crate::refs::RegNets) and causal loop diagrams.
+ */
+pub fn th_product_signed_category() -> UstrDiscreteDblTheory {
+    let mut sgn: UstrFinCategory = Default::default();
+    let (x, n, nn) = (
+        ustr("Object"),
+        ustr("Negative"),
+        ustr("Negative, slow"),
+    );
+    sgn.add_ob_generator(x);
+    sgn.add_mor_generator(pp, x, x);
+    sgn.add_mor_generator(nn, x, x);
+    sgn.add_mor_generator(p, x, x);
+    sgn.add_mor_generator(n, x, x);
+    //
+    sgn.set_composite(pp, 
+    sgn.set_composite(n, n, FinMor::Id(x));
+    DiscreteDblTheory::from(sgn)
+}
+
 /** The theory of nullable signed categories.
 
 A *nullable signed category* is a category sliced over the monoid of signs,

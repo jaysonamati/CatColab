@@ -7,6 +7,7 @@ declare const styles: {
     readonly double: string;
     readonly flat: string;
     readonly indeterminate: string;
+	readonly delay: string;
     readonly minus: string;
     readonly plus: string;
     readonly scalar: string;

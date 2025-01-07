@@ -402,6 +402,104 @@ stdTheories.add(
 
 stdTheories.add(
     {
+        id: "delayable-causal-loop",
+        name: "Causal loop diagram with delays",
+        description: "Positive and negative causal relationships with caesuras",
+        group: "System Dynamics",
+    },
+    (meta) => {
+        const thSignedCategory = new catlog.ThSignedCategory();
+        return new Theory({
+            ...meta,
+            theory: thSignedCategory.theory(),
+            onlyFreeModels: true,
+            modelTypes: [
+                {
+                    tag: "ObType",
+                    obType: { tag: "Basic", content: "Object" },
+                    name: "Variable",
+                    shortcut: ["V"],
+                    description: "Variable quantity",
+                },
+                {
+                    tag: "MorType",
+                    morType: {
+                        tag: "Hom",
+                        content: { tag: "Basic", content: "Object" },
+                    },
+                    name: "Positive, fast link",
+                    shortcut: ["P"],
+                    description: "Variables change in the same direction",
+                    arrowStyle: "plus",
+                    preferUnnamed: true,
+                },
+				{
+                    tag: "MorType",
+                    morType: {
+                        tag: "Hom",
+                        content: { tag: "Basic", content: "Object" },
+                    },
+                    name: "Positive, slow link",
+                    shortcut: ["p"],
+                    description: "Variables change in the same direction",
+                    arrowStyle: "delay",
+                    preferUnnamed: true,
+                },
+                {
+                    tag: "MorType",
+					morType: {
+                        tag: "Hom",
+                        content: { tag: "Basic", content: "Object" },
+                    },
+                    name: "Negative, fast link",
+                    shortcut: ["N"],
+                    description: "Variables change in the opposite direction",
+                    arrowStyle: "minus",
+                    preferUnnamed: true,
+                },
+				{
+                    tag: "MorType",
+					morType: {
+                        tag: "Hom",
+                        content: { tag: "Basic", content: "Object" },
+                    },
+                    name: "Negative, slow link",
+                    shortcut: ["n"],
+                    description: "Variables change in the opposite direction",
+                    arrowStyle: "delay",
+                    preferUnnamed: true,
+                },
+            ],
+            modelAnalyses: [
+                configureModelGraph({
+                    id: "diagram",
+                    name: "Visualization",
+                    description: "Visualize the causal loop diagram",
+                }),
+                configureSubmodelsAnalysis({
+                    id: "negative-loops",
+                    name: "Balancing loops",
+                    description: "Analyze the diagram for balancing loops",
+                    findSubmodels: (model) => thSignedCategory.negativeLoops(model),
+                }),
+                configureSubmodelsAnalysis({
+                    id: "positive-loops",
+                    name: "Reinforcing loops",
+                    description: "Analyze the diagram for reinforcing loops",
+                    findSubmodels: (model) => thSignedCategory.positiveLoops(model),
+                }),
+                configureLotkaVolterra({
+                    simulate: (model, data) => thSignedCategory.lotkaVolterra(model, data),
+                }),
+            ],
+        });
+    },
+);
+
+
+
+stdTheories.add(
+    {
         id: "unary-dec",
         name: "Discrete exterior calculus (DEC)",
         description: "DEC operators on a geometrical space",
