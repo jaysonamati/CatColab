@@ -1,0 +1,22 @@
+\date{2025-01-16}
+\title{Discrete opfibrations}
+\taxon{definition}
+\import{macros}
+
+\p{Let #{f:X\To S: \dbl{D} \to \Span} be a strict morphism of models of a simple double theory. We say that #{f} is a discrete opfibration if 
+\ul{
+\li{For each #{d\in \dbl{D}}, the component #{f_d} is a discrete opfibration of categories.}
+\li{For each #{m:d_0\proto d_1} in #{\dbl{D}}, the component #{f_m} is a discrete opfibration of profunctors.}
+}
+}
+
+\p{A discrete opfibration of profunctors between categories may be viewed as a morphism of profunctors which induces a discrete opfibration of categories
+on the collages of the profunctors. More explicitly, if #{f:(X:X_0\proto X_1)\To (S:S_0\proto S_1)} is a morphism of profunctors, then
+#{f} is a discrete opfibration if the components #{f_i:X_i\to S_i} are and if, for each heteromorphism #{s:s_0\hetto s_1} in #{S} and
+#{x_0} in the fiber #{f_0^{-1}(s_0)}, there is a unique heteromorphism #{\bar{s}: x_0\hetto x_1} over #{s}.} 
+
+\p{Note that, insofar as the legs
+of a discrete opfibration of profunctors are themselves discrete opfibrations of categories, the definition above is redundant; indeed point 1 may
+be recovered from point 2 applied to the horizontal identity #{u_d}.}
+
+\p{The category of modules over #{S:\dbl{D}\to\Span} is equivalent to the category of discrete opfibrations over #{\dbl{D}}. }

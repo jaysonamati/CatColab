@@ -1,0 +1,12 @@
+\date{2025-01-16}
+\title{Morphisms of instances (sketch)}
+\import{macros}
+
+\p{Let #{S:\dbl{D}\to \Span} be a model of a double theory and #{X,Y:1\proto S} [[inst-0002]] over #{S}. According to ([Lambert &
+Patterson 2024](cartesian-double-theories-2024), Definition 9.7), a (globular) morphism #{\mu:X\To Y}, called a modulation, involves
+components #{\mu_m:X_m\to Y_m} for every proarrow #{m} in #{\dbl{D}}. However, much as in the case of the definition of instance, the assumption
+that #{1} acts trivially on the left of #{X,Y} simplifies the definition considerably. The action cells #{X^\ell,Y^\ell} are trivial, 
+which eventually implies, considering the second equivariance axiom of a modulation, that #{\mu_n=\mu_{mn}} for every composable pair
+of proarrows #{m:x\proto y,n:y\proto z}. In particular, #{\mu_m=\mu_{u_y}}, so we can reduce the needed structure of a modulation 
+to components #{\mu_x: X_x\to Y_x} for every object #{x} in #{\dbl{D}}. The right equivariance axiom then says, roughly, that 
+#{\mu_x\cdot Y_x = X_x\cdot \mu_x}, while the naturality axiom says roughly that #{Xg\cdot \mu_z=\mu_y\cdot Yg}. }
