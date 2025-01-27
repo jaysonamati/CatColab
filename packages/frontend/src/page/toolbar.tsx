@@ -79,3 +79,4 @@ export function TheoryHelpButton(props: {
         </IconButton>
     );
 }
+
