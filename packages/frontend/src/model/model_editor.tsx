@@ -35,7 +35,7 @@ import {
 } from "./types";
 
 import "./model_editor.css";
-import { LotkaVolterra } from "../stdlib/analyses/lotka_volterra";
+
 
 export default function ModelPage() {
     const api = useApi();
