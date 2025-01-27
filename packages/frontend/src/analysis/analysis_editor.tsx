@@ -39,7 +39,6 @@ import type { Analysis } from "./types";
 import PanelRight from "lucide-solid/icons/panel-right";
 import PanelRightClose from "lucide-solid/icons/panel-right-close";
 
-
 export default function AnalysisPage() {
     const api = useApi();
     const theories = useContext(TheoryLibraryContext);

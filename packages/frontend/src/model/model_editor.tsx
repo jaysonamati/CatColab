@@ -2,8 +2,12 @@ import { useParams } from "@solidjs/router";
 import { Match, Show, Switch, createResource, useContext } from "solid-js";
 import invariant from "tiny-invariant";
 
+import Dialog from "@corvu/dialog";
+import CodeXml from "lucide-solid/icons/code-xml";
+import { createMemo, createSignal } from "solid-js";
 import { useApi } from "../api";
 import { InlineInput } from "../components";
+import { IconButton } from "../components";
 import {
     type CellConstructor,
     type FormalCellEditorProps,
@@ -29,13 +33,9 @@ import {
     newMorphismDecl,
     newObjectDecl,
 } from "./types";
-import { createMemo, createSignal } from "solid-js";
-import Dialog from "@corvu/dialog";
-import { IconButton } from "../components";
-import CodeXml from "lucide-solid/icons/code-xml"
 
 import "./model_editor.css";
-import { LotkaVolterra } from '../stdlib/analyses/lotka_volterra';
+import { LotkaVolterra } from "../stdlib/analyses/lotka_volterra";
 
 export default function ModelPage() {
     const api = useApi();
@@ -60,7 +60,7 @@ export function ModelDocumentEditor(props: {
             <Toolbar>
                 <ModelMenu liveModel={props.liveModel} />
                 <span class="filler" />
-                <EmbedButton/>
+                <EmbedButton />
                 <TheoryHelpButton theory={props.liveModel?.theory()} />
                 <MaybePermissionsButton
                     permissions={props.liveModel?.liveDoc.permissions}
@@ -201,10 +201,7 @@ export function EmbedButton() {
 
     return (
         <>
-            <IconButton
-                onClick={() => setIsOpen(true)}
-                tooltip="Embed Notebook"
-            >
+            <IconButton onClick={() => setIsOpen(true)} tooltip="Embed Notebook">
                 <CodeXml />
             </IconButton>
             <EmbedDialog isOpen={isOpen()} onClose={() => setIsOpen(false)} />
@@ -213,7 +210,9 @@ export function EmbedButton() {
 }
 
 function EmbedDialog(props: { isOpen: boolean; onClose: () => void }) {
-    const [copyStatus, setCopyStatus] = createSignal<"Copied!" | "Please try again later." | "">("")
+    const [copyStatus, setCopyStatus] = createSignal<"Copied!" | "Please try again later." | "">(
+        "",
+    );
     const embedLink = createMemo(() => {
         const pageURL = window.location.href;
         return `<iframe src="${pageURL}" width="100%" height="500" frameborder="0"></iframe>`;
@@ -234,18 +233,14 @@ function EmbedDialog(props: { isOpen: boolean; onClose: () => void }) {
                 <Dialog.Overlay class="overlay" />
                 <Dialog.Content class="popup">
                     <Dialog.Label>Embed Notebook</Dialog.Label>
-                    <Dialog.Description>
-                        Copy iframe Code Below:
-                    </Dialog.Description>
+                    <Dialog.Description>Copy iframe Code Below:</Dialog.Description>
                     <div class="embed-code-container">
                         <code class="embed-code">{embedLink()}</code>
                         <div class="copy-status">
-                        <button onClick={copyToClipboard} class="link-button">
-                            Copy
-                        </button>
-                        <span>
-                            {copyStatus()}
-                        </span>
+                            <button onClick={copyToClipboard} class="link-button">
+                                Copy
+                            </button>
+                            <span>{copyStatus()}</span>
                         </div>
                     </div>
                 </Dialog.Content>
