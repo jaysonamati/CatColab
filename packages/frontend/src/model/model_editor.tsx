@@ -36,7 +36,6 @@ import {
 
 import "./model_editor.css";
 
-
 export default function ModelPage() {
     const api = useApi();
     const theories = useContext(TheoryLibraryContext);
