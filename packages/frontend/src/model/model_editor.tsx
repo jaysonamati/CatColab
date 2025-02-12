@@ -59,7 +59,6 @@ export function ModelDocumentEditor(props: {
             <Toolbar>
                 <ModelMenu liveModel={props.liveModel} />
                 <span class="filler" />
-                <EmbedButton />
                 <TheoryHelpButton theory={props.liveModel?.theory()} />
                 <MaybePermissionsButton
                     permissions={props.liveModel?.liveDoc.permissions}
@@ -200,8 +199,13 @@ export function EmbedButton() {
 
     return (
         <>
-            <IconButton onClick={() => setIsOpen(true)} tooltip="Embed Notebook">
+            <IconButton
+                onClick={() => setIsOpen(true)}
+                tooltip="Embed Notebook"
+                class="embed-button"
+            >
                 <CodeXml />
+                <p>Embed</p>
             </IconButton>
             <EmbedDialog isOpen={isOpen()} onClose={() => setIsOpen(false)} />
         </>
