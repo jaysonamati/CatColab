@@ -15,7 +15,7 @@ import invariant from "tiny-invariant";
 
 import type { NewPermissions, PermissionLevel, Permissions, UserSummary } from "catcolab-api";
 import { useApi } from "../api";
-import { Dialog, FormGroup, IconButton, SelectField, Warning } from "../components";
+import { Dialog, FormGroup, IconButton, SelectItem, Warning } from "../components";
 import { deepCopyJSON } from "../util/deepcopy";
 import { Login } from "./login";
 import { NameUser, UserInput } from "./username";
@@ -99,23 +99,24 @@ export function PermissionsForm(props: {
     return (
         <form class="permissions" onSubmit={(evt) => evt.preventDefault()}>
             <FormGroup>
-                <SelectField
-                    label="General access"
+                <SelectItem
+                    id="entry-anyone"
+                    label="Any person can"
                     value={state.anyone ?? ""}
                     onInput={(evt) => {
                         const value = evt.currentTarget.value;
                         setState({ anyone: value ? (value as PermissionLevel) : null });
                     }}
                 >
-                    <option value="">Only authorized people can access</option>
-                    <option value="Read">Anyone can view</option>
-                    <option value="Write">Anyone can edit</option>
-                </SelectField>
+                    <option value="">Not access the document</option>
+                    <option value="Read">View</option>
+                    <option value="Write">Edit</option>
+                </SelectItem>
                 <Show
                     when={state.anyone === "Write" && state.anyone !== currentPermissions()?.anyone}
                 >
                     <Warning>
-                        <p>{"Anyone with the link will be able to edit the document."}</p>
+                        <p>{"Any person with the link will be able to edit the document."}</p>
                         <p>{"This setting is convenient but it is not secure."}</p>
                     </Warning>
                 </Show>
