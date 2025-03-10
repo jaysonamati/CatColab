@@ -11,7 +11,7 @@ import {
     cellShortcutModifier,
     newFormalCell,
 } from "../notebook";
-import { DocumentMenu, TheoryHelpButton, Toolbar } from "../page";
+import { AutoCatlabButton, DocumentMenu, TheoryHelpButton, Toolbar } from "../page";
 import { TheoryLibraryContext } from "../stdlib";
 import type { ModelTypeMeta } from "../theory";
 import { MaybePermissionsButton } from "../user";
@@ -54,6 +54,7 @@ export function ModelDocumentEditor(props: {
             <Toolbar>
                 <DocumentMenu liveDocument={props.liveModel} />
                 <span class="filler" />
+                <AutoCatlabButton/>
                 <TheoryHelpButton theory={props.liveModel?.theory()} />
                 <MaybePermissionsButton
                     permissions={props.liveModel?.liveDoc.permissions}

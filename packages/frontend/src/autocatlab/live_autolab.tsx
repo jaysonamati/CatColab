@@ -11,7 +11,7 @@ import {
     cellShortcutModifier,
     newFormalCell,
 } from "../notebook";
-import { DocumentMenu, TheoryHelpButton, Toolbar } from "../page";
+import { AutoCatlabButton, BrandedToolbar, DefaultAppMenu, DocumentMenu, TheoryHelpButton, Toolbar } from "../page";
 import { TheoryLibraryContext } from "../stdlib";
 import type { ModelTypeMeta } from "../theory";
 import { MaybePermissionsButton } from "../user";
@@ -29,9 +29,9 @@ import {
     newObjectDecl,
 } from "../model/types";
 
-import "./model_editor.css";
+import "./live_autolab.css";
 
-export default function ModelPage() {
+export default function AutoModelPage() {
     const api = useApi();
     const theories = useContext(TheoryLibraryContext);
     invariant(theories, "Must provide theory library as context to model page");
@@ -43,5 +43,19 @@ export default function ModelPage() {
         (refId) => getLiveModel(refId, api, theories),
     );
 
-    return <ModelDocumentEditor liveModel={liveModel()} />;
+    return (
+        <>
+            <div class="autocatlab-container">
+                {/* <ModelDocumentEditor liveModel={liveModel()} /> */}
+                <BrandedToolbar/>
+                {/* <Toolbar>
+                    <DefaultAppMenu />
+                    <span class="filler" />
+                    <AutoCatlabButton/>
+                    <Brand/>
+                </Toolbar> */}
+                <h1>AutoLab</h1>
+            </div>
+        </>
+    );
 }

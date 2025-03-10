@@ -8,6 +8,7 @@ import type { Theory } from "../theory";
 import { DefaultAppMenu } from "./menubar";
 
 import CircleHelp from "lucide-solid/icons/circle-help";
+import Workflow from "lucide-solid/icons/workflow";
 
 import "./toolbar.css";
 
@@ -78,4 +79,30 @@ export function TheoryHelpButton(props: {
             <CircleHelp />
         </IconButton>
     );
+}
+
+
+/** Button that navigates to the Auto-catcolab page
+ * 
+ */
+
+export function AutoCatlabButton() {
+
+    const navigate = useNavigate();
+
+    const tooltip = () => (
+        <>
+            <p>
+                {"Start using Catcolab with Auto-Structures"}
+            </p>
+        </>
+    )
+    return (
+        <IconButton
+            onClick={() => navigate("/autocatlab")}
+            tooltip={tooltip()}
+        >
+            <Workflow />
+        </IconButton>
+    )
 }
