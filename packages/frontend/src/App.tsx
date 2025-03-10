@@ -101,6 +101,11 @@ const routes: RouteDefinition[] = [
         component: lazy(() => import("./user/profile")),
     },
     {
+        path: "/autocatlab",
+        component: lazy(() => import("./autocatlab/live_autolab")),
+
+    },
+    {
         path: "*",
         component: lazy(() => import("./page/404_page")),
     },
