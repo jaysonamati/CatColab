@@ -8,23 +8,26 @@ import * as uuid from "uuid";
 import { MultiProvider } from "@solid-primitives/context";
 import { Navigate, type RouteDefinition, type RouteSectionProps, Router } from "@solidjs/router";
 import { FirebaseProvider } from "solid-firebase";
-import { ErrorBoundary, Show, createResource, lazy } from "solid-js";
+import { ErrorBoundary, Show, createContext, createResource, lazy } from "solid-js";
 
 import { type Api, ApiContext, createRpcClient, useApi } from "./api";
 import { helpRoutes } from "./help/routes";
 import { createModel } from "./model/document";
 import { PageContainer } from "./page/page_container";
-import { TheoryLibraryContext, stdTheories } from "./stdlib";
+import { AutoLabModelContext, TheoryLibraryContext, stdTheories } from "./stdlib";
 import { ErrorBoundaryDialog } from "./util/errors";
+import { createStore } from "solid-js/store";
 
 const serverUrl = import.meta.env.VITE_SERVER_URL;
 const repoUrl = import.meta.env.VITE_AUTOMERGE_REPO_URL;
 const firebaseOptions = JSON.parse(import.meta.env.VITE_FIREBASE_OPTIONS) as FirebaseOptions;
 
+
 const Root = (props: RouteSectionProps<unknown>) => {
     invariant(serverUrl, "Must set environment variable VITE_SERVER_URL");
     invariant(repoUrl, "Must set environment variable VITE_AUTOMERGE_REPO_URL");
     const serverHost = new URL(serverUrl).host;
+
 
     const firebaseApp = initializeApp(firebaseOptions);
     const rpc = createRpcClient(serverUrl, firebaseApp);
@@ -112,9 +115,16 @@ const routes: RouteDefinition[] = [
 ];
 
 function App() {
+
+    const [autolabModels, setAutoLabModels] = createStore({
+        autoModels: []
+    });
+
     return (
         <ErrorBoundary fallback={(err) => <ErrorBoundaryDialog error={err} />}>
-            <Router root={Root}>{routes}</Router>
+            <AutoLabModelContext.Provider value={{autolabModels, setAutoLabModels}}>
+                <Router root={Root}>{routes}</Router>
+            </AutoLabModelContext.Provider>
         </ErrorBoundary>
     );
 }

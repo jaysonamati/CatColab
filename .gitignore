@@ -84,3 +84,6 @@ web_modules/
 
 # Sentry files
 instrument.mjs
+
+# Bun lock files
+/packages/frontend/bun.lockb

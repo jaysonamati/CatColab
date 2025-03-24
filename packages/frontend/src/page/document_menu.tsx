@@ -1,5 +1,5 @@
 import { useNavigate } from "@solidjs/router";
-import { Match, Show, Switch } from "solid-js";
+import { Match, Show, Switch, useContext } from "solid-js";
 
 import { createAnalysis } from "../analysis/document";
 import { type StableRef, useApi } from "../api";
@@ -26,6 +26,11 @@ import Copy from "lucide-solid/icons/copy";
 import Export from "lucide-solid/icons/download";
 import FilePlus from "lucide-solid/icons/file-plus";
 import Network from "lucide-solid/icons/network";
+import { Blocks } from 'lucide-solid';
+import { AutoLabModelContext } from "../stdlib";
+
+
+
 
 /** Hamburger menu for any model or diagram document. */
 export function DocumentMenu(props: {
@@ -46,6 +51,8 @@ export function DocumentMenuItems(props: {
 }) {
     const api = useApi();
     const navigate = useNavigate();
+
+    const {autolabModels, setAutoLabModels } = useContext(AutoLabModelContext);
 
     const unversionedRef = (refId: string): StableRef => ({
         _id: refId,
@@ -113,6 +120,15 @@ export function DocumentMenuItems(props: {
         copyToClipboard(JSON.stringify(doc));
     };
 
+    const onAddToAutoCatlab = () => {
+        const doc = props.liveDocument.liveDoc.doc;
+        copyToClipboard(JSON.stringify(doc));
+        // Add the doc string to a global store
+        setAutoLabModels("autoModels", autolabModels.autoModels.length, JSON.stringify(doc));
+        console.log("Added models to autolab lib");
+        // navigate("/autocatlab")
+    };
+
     return (
         <>
             <Show when={props.liveDocument.type === "model"}>
@@ -154,6 +170,10 @@ export function DocumentMenuItems(props: {
             <MenuItem onSelect={() => onCopy()}>
                 <CopyToClipboard />
                 <MenuItemLabel>{"Copy to clipboard"}</MenuItemLabel>
+            </MenuItem>
+            <MenuItem onSelect={() => onAddToAutoCatlab()}>
+                <Blocks />
+                <MenuItemLabel>{"Add Model to Auto-Catlab"}</MenuItemLabel>
             </MenuItem>
         </>
     );
