@@ -1,9 +1,9 @@
 import { useNavigate, useParams } from "@solidjs/router";
-import { Match, Show, Switch, createEffect, createResource, createSignal, onCleanup, useContext } from "solid-js";
+import { JSX, Match, Show, Switch, createEffect, createResource, createSignal, onCleanup, useContext } from "solid-js";
 import invariant from "tiny-invariant";
 
 import { type Document, useApi } from "../api";
-import { InlineInput, TextAreaField } from "../components";
+import { FormGroup, InlineInput, TextAreaField } from "../components";
 import {
     type CellConstructor,
     type FormalCellEditorProps,
@@ -50,6 +50,7 @@ export default function AutoModelPage() {
     const {autolabModels, setAutoLabModels } = useContext(AutoLabModelContext);
 
     const [jsonToRender, setJsonToRender] = createSignal("");
+    const [applicationWish, setApplicationWish] = createSignal("");
 
     const validateAndImport = (jsonString: string) => {
         try {
@@ -127,7 +128,7 @@ export default function AutoModelPage() {
         const intervalId = setInterval(() => {
             console.log("Communicating with AI");
             console.log("The models in store", autolabModels.autoModels);
-            generateCombinedModel()
+            generateCombinedModel(applicationWish())
         }, 5000);
 
         onCleanup(() => {
@@ -137,7 +138,7 @@ export default function AutoModelPage() {
 
 
     // Define an async function to send POST request to our api
-    const generateCombinedModel = async () => {
+    const generateCombinedModel = async (application: String) => {
         try {
             // use the fetch method to send an http request to /llm/composition endpoint
             const response = await fetch('http://localhost:8000/composition', {
@@ -148,7 +149,10 @@ export default function AutoModelPage() {
                     // 'Access-Control-Allow-Origin':'*',
                     // 'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS'
                 },
-                body: JSON.stringify({prompt: autolabModels.autoModels})
+                body: JSON.stringify({
+                    models: autolabModels.autoModels,
+                    application: application
+                })
             });
 
             // Waits for the response to be converted to JSON format and stores it in the data variable
@@ -156,11 +160,12 @@ export default function AutoModelPage() {
 
             // If successful, updates the output state with the output field from the response data
             if(response.ok) {
-                setCombinedModel(data.output)
+                setCombinedModel(data.composition_text)
                 console.log(data.composition_text)
                 
             } else {
-                setCombinedModel(data.error)
+                console.error(data.error)
+                // setCombinedModel(data.error)
             }
 
         // Catches any errors that occur during the fetch request
@@ -168,6 +173,17 @@ export default function AutoModelPage() {
             console.error('Error:', error)
         }
     }
+
+
+    const handleWishInput: JSX.EventHandler<HTMLTextAreaElement, Event> = (event) => {
+        const textarea = event.currentTarget;
+        setApplicationWish(textarea.value);
+    };
+
+    const handleWishModelComposition = () => {
+        validateAndImport(combinedModel())
+    }
+
 
 
     const [liveModel] = createResource(
@@ -187,16 +203,21 @@ export default function AutoModelPage() {
                     <Brand/>
                 </Toolbar> */}
                 <h1>AutoLab</h1> 
-                <TextAreaField
-                    label="Make an application wish"
-                    value={undefined}
-                    onInput={undefined}
-                    onPaste= {undefined}
-                    placeholder="Make an application wish"
-                />
-                <button type="button" class="ok" onClick={() => validateAndImport(autolabModels.autoModels[0])}>
-                    Suggest Combined Model
-                </button>
+                <form>
+                    <FormGroup>
+                        <TextAreaField
+                            label="Application wish"
+                            value={applicationWish()}
+                            onInput={handleWishInput}
+                            onPaste= {handleWishInput}
+                            placeholder="Make an application wish"
+                        />
+                        <button type="button" class="ok" onClick={() => handleWishModelComposition()}>
+                            Suggest Combined Model
+                        </button>
+
+                    </FormGroup>
+                </form>
             </div>
         </>
     );
