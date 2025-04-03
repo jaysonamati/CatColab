@@ -41,5 +41,6 @@ export default defineConfig({
         watch: {
             usePolling: true, // polling may be more reliable within the container
         },
+        port: 5174,
     },
 });
