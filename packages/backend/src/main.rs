@@ -9,6 +9,7 @@ use sqlx::postgres::PgPoolOptions;
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
 use tracing::{error, info};
+use translation::translation_route;
 
 mod app;
 mod auth;
@@ -16,6 +17,7 @@ mod composition;
 mod document;
 mod rpc;
 mod socket;
+mod translation;
 mod user;
 
 /// Port for the web server providing the RPC API.
@@ -79,6 +81,7 @@ async fn main() {
         let app = Router::new()
             .route("/", get(|| async { "Hello! The CatColab server is running" }))
             .route("/composition", post(composition_route))
+            .route("/translation", post(translation_route))
             .nest_service("/rpc", qubit_service)
             .layer(CorsLayer::permissive());
         info!("Web server listening at port {}", port);

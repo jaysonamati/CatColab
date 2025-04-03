@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "@solidjs/router";
-import { JSX, Match, Show, Switch, createEffect, createResource, createSignal, onCleanup, useContext } from "solid-js";
+import { JSX, Match, Show, Suspense, Switch, createEffect, createResource, createSignal, onCleanup, useContext, useTransition } from "solid-js";
 import invariant from "tiny-invariant";
 
 import { type Document, useApi } from "../api";
@@ -47,7 +47,7 @@ export default function AutoModelPage() {
     const theories = useContext(TheoryLibraryContext);
     invariant(theories, "Must provide theory library as context to model page");
 
-    const {autolabModels, setAutoLabModels } = useContext(AutoLabModelContext);
+    const { autolabModels, setAutoLabModels } = useContext(AutoLabModelContext);
 
     const [jsonToRender, setJsonToRender] = createSignal("");
     const [applicationWish, setApplicationWish] = createSignal("");
@@ -128,7 +128,7 @@ export default function AutoModelPage() {
         const intervalId = setInterval(() => {
             console.log("Communicating with AI");
             console.log("The models in store", autolabModels.autoModels);
-            generateCombinedModel(applicationWish())
+            //generateCombinedModel(applicationWish())
         }, 5000);
 
         onCleanup(() => {
@@ -145,7 +145,7 @@ export default function AutoModelPage() {
                 // mode: 'no-cors',
                 method: 'POST',
                 headers: {
-                    'Content-Type':'application/json; charset=utf-8',
+                    'Content-Type': 'application/json; charset=utf-8',
                     // 'Access-Control-Allow-Origin':'*',
                     // 'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS'
                 },
@@ -159,16 +159,16 @@ export default function AutoModelPage() {
             const data = await response.json();
 
             // If successful, updates the output state with the output field from the response data
-            if(response.ok) {
+            if (response.ok) {
                 setCombinedModel(data.composition_text)
                 console.log(data.composition_text)
-                
+
             } else {
                 console.error(data.error)
                 // setCombinedModel(data.error)
             }
 
-        // Catches any errors that occur during the fetch request
+            // Catches any errors that occur during the fetch request
         } catch (error) {
             console.error('Error:', error)
         }
@@ -191,33 +191,58 @@ export default function AutoModelPage() {
         (refId) => getLiveModel(refId, api, theories),
     );
 
+    // Logic and state for tabs
+    const [tab, setTab] = createSignal(0);
+    const [pending, start] = useTransition();
+    const updateTab = (index) => () => start(() => setTab(index));
+
     return (
         <>
             <div class="autocatlab-container">
                 {/* <ModelDocumentEditor liveModel={liveModel()} /> */}
-                <BrandedToolbar/>
+                <BrandedToolbar />
                 {/* <Toolbar>
                     <DefaultAppMenu />
                     <span class="filler" />
                     <AutoCatlabButton/>
                     <Brand/>
                 </Toolbar> */}
-                <h1>AutoLab</h1> 
-                <form>
-                    <FormGroup>
-                        <TextAreaField
-                            label="Application wish"
-                            value={applicationWish()}
-                            onInput={handleWishInput}
-                            onPaste= {handleWishInput}
-                            placeholder="Make an application wish"
-                        />
-                        <button type="button" class="ok" onClick={() => handleWishModelComposition()}>
-                            Suggest Combined Model
-                        </button>
+                <h1 class="auto-title">AutoLab</h1>
+                <ul class="inline">
+                    <li classList={{ selected: tab() === 0 }} onClick={updateTab(0)}>
+                        Composition
+                    </li>
+                    <li classList={{ selected: tab() === 1 }} onClick={updateTab(1)}>
+                        Transform
+                    </li>
+                </ul>
+                <div class="tab" classList={{ pending: pending() }}>
+                    <Suspense fallback={<div class="loader">Loading...</div>}>
+                        <Switch>
+                            <Match when={tab() === 0}>
+                                <form>
+                                    <FormGroup>
+                                        <TextAreaField
+                                            label="Application wish"
+                                            value={applicationWish()}
+                                            onInput={handleWishInput}
+                                            onPaste={handleWishInput}
+                                            placeholder="Make an application wish"
+                                        />
+                                        <button type="button" class="ok" onClick={() => handleWishModelComposition()}>
+                                            Suggest Combined Model
+                                        </button>
 
-                    </FormGroup>
-                </form>
+                                    </FormGroup>
+                                </form>
+                            </Match>
+                            <Match when={tab() === 1}>
+                                <h1>Transformation</h1>
+                            </Match>
+                        </Switch>
+                    </Suspense>
+
+                </div>
             </div>
         </>
     );

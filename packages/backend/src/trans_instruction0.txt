@@ -1,0 +1,459 @@
+You will act as an Expert Model Translator specializing in Cartesian double theories, grounded in the paper "Cartesian double theories: A double-categorical framework for categorical doctrines" by Michael Lambert and Evan Patterson (arXiv:2310.05384v3). Your expertise includes the formal definitions of various Cartesian double theories (like causal-loop, primitive-stock-flow, etc.).
+
+Your task is to translate a model M of a source Cartesian double theory T into a corresponding model M' of a target Cartesian double theory T'. The input M will be a ModelDocument JSON object conforming to the previously provided schema. Your output must be only the translated ModelDocument JSON object (M'), valid according to the same schema.
+
+I will provide:
+
+Target Theory Identifier (T'): The string identifier for the target theory.
+
+Input Model JSON (M): The model M as a ModelDocument JSON object.
+
+Your required internal process is:
+
+Identify Theories: Extract the source theory identifier T from the theory field of the input JSON M. Access the formal definitions of theory T and the provided target theory T'.
+
+Determine Translation Rule (f): Mathematically determine the canonical Cartesian strict double functor f: T -> T' representing the standard translation between these formal theories. You must succeed in determining this functor.
+
+Derive Type Mapping: From the functor f, derive the precise mapping rule for all relevant ObType and MorType JSON structures present in the input model M.
+
+Translate Model: Construct the ModelDocument JSON object (M') by:
+
+Initializing M' as a deep copy of the input M.
+
+Iterating through the notebook.cells array. For each FormalCell containing an ObjectDecl or MorphismDecl, update the obType or morType field, respectively, using the derived mapping rule. Ensure all other fields within declarations (id, name, dom, cod) and cells remain unchanged.
+
+Setting the top-level theory field of M' to the target theory identifier T'.
+
+Output Result: Output only the complete, translated ModelDocument JSON object M'. Ensure the output is a single, valid JSON object conforming to the schema. Do not output any text, explanation, or metadata besides the JSON object itself.
+
+Here is the schema to be adhered to:
+
+
+
+{
+  "$ref": "#/definitions/ModelDocument",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Cell<ModelJudgment>": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/RichTextCell"
+        },
+        {
+          "$ref": "#/definitions/FormalCell%3CModelJudgment%3E"
+        },
+        {
+          "$ref": "#/definitions/StemCell"
+        }
+      ],
+      "description": "A cell in a notebook. Any notebook can contain rich text cells, and support for editing rich text is built into the notebook editor. In addition, notebooks can contain cells of custom type, which is typically formal in contrast to natural text."
+    },
+    "FormalCell<ModelJudgment>": {
+      "additionalProperties": false,
+      "description": "A cell containing custom data, usually a formal object.",
+      "properties": {
+        "content": {
+          "$ref": "#/definitions/ModelJudgment"
+        },
+        "id": {
+          "$ref": "#/definitions/Uuid"
+        },
+        "tag": {
+          "const": "formal",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tag",
+        "id",
+        "content"
+      ],
+      "type": "object"
+    },
+    "ModelDecl": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ObjectDecl"
+        },
+        {
+          "$ref": "#/definitions/MorphismDecl"
+        }
+      ],
+      "description": "A declaration in the definition of a model."
+    },
+    "ModelDocument": {
+      "additionalProperties": false,
+      "description": "A document defining a model.",
+      "properties": {
+        "name": {
+          "description": "Human-readable name of the document.",
+          "type": "string"
+        },
+        "notebook": {
+          "$ref": "#/definitions/Notebook%3CModelJudgment%3E",
+          "description": "Content of the model, formal and informal."
+        },
+        "theory": {
+          "description": "Identifier of double theory that the model is of.",
+          "type": "string"
+        },
+        "type": {
+          "const": "model",
+          "description": "Type of the document, such as \"model\" or \"diagram\".",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "notebook",
+        "theory",
+        "type"
+      ],
+      "type": "object"
+    },
+    "ModelJudgment": {
+      "$ref": "#/definitions/ModelDecl",
+      "description": "A judgment in the definition of a model. TODO: Judgments should be declarations *or* morphism equations."
+    },
+    "Mor": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/Uuid"
+            },
+            "tag": {
+              "const": "Basic",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "type": "string"
+            },
+            "tag": {
+              "const": "Composite",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "additionalProperties": false,
+              "properties": {
+                "cod": {
+                  "$ref": "#/definitions/Mor"
+                },
+                "dom": {
+                  "$ref": "#/definitions/Mor"
+                },
+                "post": {
+                  "$ref": "#/definitions/Mor"
+                },
+                "pre": {
+                  "$ref": "#/definitions/Mor"
+                }
+              },
+              "required": [
+                "dom",
+                "cod",
+                "pre",
+                "post"
+              ],
+              "type": "object"
+            },
+            "tag": {
+              "const": "TabulatorSquare",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        }
+      ],
+      "description": "A morphism in a model of a double theory."
+    },
+    "MorType": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/Ustr"
+            },
+            "tag": {
+              "const": "Basic",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/ObType"
+            },
+            "tag": {
+              "const": "Hom",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        }
+      ],
+      "description": "Morphism type in a double theory."
+    },
+    "MorphismDecl": {
+      "additionalProperties": false,
+      "description": "Declaration of a morphism in a model.",
+      "properties": {
+        "cod": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Ob"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Codomain of morphism, if defined."
+        },
+        "dom": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Ob"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Domain of morphism, if defined."
+        },
+        "id": {
+          "$ref": "#/definitions/Uuid",
+          "description": "Globally unique identifier of morphism."
+        },
+        "morType": {
+          "$ref": "#/definitions/MorType",
+          "description": "The morphism's type in the double theory."
+        },
+        "name": {
+          "description": "Human-readable name of morphism.",
+          "type": "string"
+        },
+        "tag": {
+          "const": "morphism",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cod",
+        "dom",
+        "id",
+        "morType",
+        "name",
+        "tag"
+      ],
+      "type": "object"
+    },
+    "Notebook<ModelJudgment>": {
+      "additionalProperties": false,
+      "description": "Data type for a notebook. A notebook is nothing more than a list of cells. Any metadata associated with a notebook, such as its title, is stored elsewhere.",
+      "properties": {
+        "cells": {
+          "items": {
+            "$ref": "#/definitions/Cell%3CModelJudgment%3E"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "cells"
+      ],
+      "type": "object"
+    },
+    "Ob": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/Uuid"
+            },
+            "tag": {
+              "const": "Basic",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/Mor"
+            },
+            "tag": {
+              "const": "Tabulated",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        }
+      ],
+      "description": "An object in a model of a double theory."
+    },
+    "ObType": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/Ustr"
+            },
+            "tag": {
+              "const": "Basic",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/MorType"
+            },
+            "tag": {
+              "const": "Tabulator",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        }
+      ],
+      "description": "Object type in a double theory."
+    },
+    "ObjectDecl": {
+      "additionalProperties": false,
+      "description": "Declaration of an object in a model.",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/Uuid",
+          "description": "Globally unique identifier of object."
+        },
+        "name": {
+          "description": "Human-readable name of object.",
+          "type": "string"
+        },
+        "obType": {
+          "$ref": "#/definitions/ObType",
+          "description": "The object's type in the double theory."
+        },
+        "tag": {
+          "const": "object",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "obType",
+        "tag"
+      ],
+      "type": "object"
+    },
+    "RichTextCell": {
+      "additionalProperties": false,
+      "description": "A cell containing rich text.",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/definitions/Uuid"
+        },
+        "tag": {
+          "const": "rich-text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tag",
+        "id",
+        "content"
+      ],
+      "type": "object"
+    },
+    "StemCell": {
+      "additionalProperties": false,
+      "description": "A stem cell is a placeholder which will be converted into another cell. Stem cells are created when the user opens the \"new cell\" menu and are destroyed and replaced when a type for the new cell is selected.",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/Uuid"
+        },
+        "tag": {
+          "const": "stem",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tag",
+        "id"
+      ],
+      "type": "object"
+    },
+    "Ustr": {
+      "type": "string"
+    },
+    "Uuid": {
+      "type": "string"
+    }
+  }
+}
+
+

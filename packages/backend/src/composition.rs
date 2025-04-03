@@ -56,7 +56,14 @@ pub struct TokenDetail {
     pub token_count: u32,
 }
 
-async fn make_llm_call(
+async fn make_ollama_call(
+    models_json: &[String],
+    application: &String,
+) -> Result<String, reqwest::Error> {
+    Ok(String::from("Some fancy llm response"))
+}
+
+async fn make_gemini_call(
     models_json: &[String],
     application: &String,
 ) -> Result<String, reqwest::Error> {
@@ -64,6 +71,11 @@ async fn make_llm_call(
 
     let url = format!(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={}",
+        api_key
+    );
+
+    let reasoning_url = format!(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-exp-03-25:generateContent?key={}",
         api_key
     );
 
@@ -93,7 +105,7 @@ async fn make_llm_call(
         }
     });
 
-    let system_instruction_text = match fs::read_to_string("instruction.txt") {
+    let system_instruction_text = match fs::read_to_string("instruction0.txt") {
         Ok(instruction) => instruction,
         Err(_) => String::from("The default instruction"),
     };
@@ -109,6 +121,8 @@ async fn make_llm_call(
         "Combine the following two models; Model A {model_one_owned}, Model B{model_two_owned}"
     );
     */
+
+    let encoded_pdf = String::from("Hello this is a pdf");
 
     let models_owned = models_json.concat().to_owned();
     let application_owned = application.to_owned();
@@ -144,7 +158,8 @@ async fn make_llm_call(
     });
 
     let response: serde_json::Value = client
-        .post(&url)
+        //.post(&url)
+        .post(&reasoning_url)
         .json(&model_composition_request_body)
         .send()
         .await?
@@ -158,6 +173,7 @@ async fn make_llm_call(
         one_candidate.trim_start_matches('[').trim_end_matches(']').to_string();
     //println!("{response_parsed:#?}");
     //println!("{response:#?}");
+    println!("{response_text:#?}");
     println!("{one_candidate}");
     println!("{one_candidate_trimmed}");
     //Ok(response_text)
@@ -166,7 +182,7 @@ async fn make_llm_call(
 }
 
 pub async fn composition_route(Json(payload): Json<DoComposition>) -> Json<ModelComposition> {
-    let response_text = match make_llm_call(&payload.models, &payload.application).await {
+    let response_text = match make_gemini_call(&payload.models, &payload.application).await {
         Ok(llm_composition) => llm_composition,
         Err(_e) => String::from("AI run into an error"),
     };
