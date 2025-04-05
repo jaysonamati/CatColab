@@ -63,7 +63,7 @@ async fn make_ollama_call(
     Ok(String::from("Some fancy llm response"))
 }
 
-async fn make_gemini_call(
+async fn composition_gemini_call(
     models_json: &[String],
     application: &String,
 ) -> Result<String, reqwest::Error> {
@@ -182,7 +182,7 @@ async fn make_gemini_call(
 }
 
 pub async fn composition_route(Json(payload): Json<DoComposition>) -> Json<ModelComposition> {
-    let response_text = match make_gemini_call(&payload.models, &payload.application).await {
+    let response_text = match composition_gemini_call(&payload.models, &payload.application).await {
         Ok(llm_composition) => llm_composition,
         Err(_e) => String::from("AI run into an error"),
     };

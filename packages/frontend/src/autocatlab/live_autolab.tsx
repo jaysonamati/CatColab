@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "@solidjs/router";
-import { JSX, Match, Show, Suspense, Switch, createEffect, createResource, createSignal, onCleanup, useContext, useTransition } from "solid-js";
+import { Index, JSX, Match, Show, Suspense, Switch, createEffect, createResource, createSignal, onCleanup, useContext, useTransition } from "solid-js";
 import invariant from "tiny-invariant";
 
 import { type Document, useApi } from "../api";
@@ -49,8 +49,14 @@ export default function AutoModelPage() {
 
     const { autolabModels, setAutoLabModels } = useContext(AutoLabModelContext);
 
+    const [modelList, setModelList] = createSignal([]);
+
     const [jsonToRender, setJsonToRender] = createSignal("");
     const [applicationWish, setApplicationWish] = createSignal("");
+
+    const [modelToTranslate, setModelToTranslate] = createSignal("");
+    const [tgtLanguage, setTgtLanguage] = createSignal("");
+    const [translatedModel, setTranslatedModel] = createSignal("");
 
     const validateAndImport = (jsonString: string) => {
         try {
@@ -137,7 +143,7 @@ export default function AutoModelPage() {
     });
 
 
-    // Define an async function to send POST request to our api
+    // Define an async function to send composition POST request to our api
     const generateCombinedModel = async (application: String) => {
         try {
             // use the fetch method to send an http request to /llm/composition endpoint
@@ -174,6 +180,47 @@ export default function AutoModelPage() {
         }
     }
 
+    // Define an async function to send translation POST request to our api
+    const translateSelectedModel = async () => {
+        const src_model = modelToTranslate();
+        const tgt_theory = tgtLanguage();
+        try {
+            // use the fetch method to send an http request to /llm/composition endpoint
+            const response = await fetch('http://localhost:8000/translation', {
+                // mode: 'no-cors',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    // 'Access-Control-Allow-Origin':'*',
+                    // 'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS'
+                },
+                body: JSON.stringify({
+                    src_json_model: src_model,
+                    tgt_json_language: tgt_theory,
+                })
+            });
+
+            // Waits for the response to be converted to JSON format and stores it in the data variable
+            const data = await response.json();
+
+            // If successful, updates the output state with the output field from the response data
+            if (response.ok) {
+                setTranslatedModel(data.translated_json);
+                console.log(data.translated_json);
+
+            } else {
+                console.error(data.error)
+                // setCombinedModel(data.error)
+            }
+
+            // Catches any errors that occur during the fetch request
+        } catch (error) {
+            console.error('Error:', error)
+        }
+    }
+
+
+
 
     const handleWishInput: JSX.EventHandler<HTMLTextAreaElement, Event> = (event) => {
         const textarea = event.currentTarget;
@@ -182,6 +229,25 @@ export default function AutoModelPage() {
 
     const handleWishModelComposition = () => {
         validateAndImport(combinedModel())
+    }
+
+    const handleModelTranslationSelect = (model: string) => {
+        setModelToTranslate(model);
+        setTgtLanguage("causal-loop-delays")
+        console.log("Will translate this model", model);
+    }
+
+    const handleModelTranslation = () => {
+        console.log("Translation!!");
+        if ((modelToTranslate() === "") || (tgtLanguage() == "")) {
+            console.log("Missing data!!");
+            return;
+        }
+        console.log("Src Model", modelToTranslate());
+        console.log("Tgt language", tgtLanguage());
+        translateSelectedModel();
+        console.log("Translation Complete");
+
     }
 
 
@@ -194,7 +260,7 @@ export default function AutoModelPage() {
     // Logic and state for tabs
     const [tab, setTab] = createSignal(0);
     const [pending, start] = useTransition();
-    const updateTab = (index) => () => start(() => setTab(index));
+    const updateTab = (index: number) => () => start(() => setTab(index));
 
     return (
         <>
@@ -238,6 +304,18 @@ export default function AutoModelPage() {
                             </Match>
                             <Match when={tab() === 1}>
                                 <h1>Transformation</h1>
+                                <div class="model-list">
+                                    <Index each={autolabModels.autoModels} fallback={<div>Loading...</div>}>
+                                        {(item, index) => (
+                                            <div onClick={() => handleModelTranslationSelect(item())}>
+                                                {item()}
+                                            </div>
+                                        )}
+                                    </Index>
+                                </div>
+                                <button type="button" class="ok" onClick={() => handleModelTranslation()}>
+                                    Translate Selected Model To Personal Language
+                                </button>
                             </Match>
                         </Switch>
                     </Suspense>
