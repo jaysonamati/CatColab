@@ -134,8 +134,8 @@ export default function AutoModelPage() {
         const intervalId = setInterval(() => {
             console.log("Communicating with AI");
             console.log("The models in store", autolabModels.autoModels);
-            //generateCombinedModel(applicationWish())
-        }, 5000);
+            generateCombinedModel(applicationWish())
+        }, 10000);
 
         onCleanup(() => {
             clearInterval(intervalId);
@@ -207,6 +207,7 @@ export default function AutoModelPage() {
             if (response.ok) {
                 setTranslatedModel(data.translated_json);
                 console.log(data.translated_json);
+                validateAndImport(translatedModel())
 
             } else {
                 console.error(data.error)
@@ -274,6 +275,15 @@ export default function AutoModelPage() {
                     <Brand/>
                 </Toolbar> */}
                 <h1 class="auto-title">AutoLab</h1>
+                <div class="model-list">
+                    <Index each={autolabModels.autoModels} fallback={<div>Loading...</div>}>
+                        {(item, index) => (
+                            <div onClick={() => handleModelTranslationSelect(item())}>
+                                {JSON.parse(item()).name}
+                            </div>
+                        )}
+                    </Index>
+                </div>
                 <ul class="inline">
                     <li classList={{ selected: tab() === 0 }} onClick={updateTab(0)}>
                         Composition
@@ -304,15 +314,6 @@ export default function AutoModelPage() {
                             </Match>
                             <Match when={tab() === 1}>
                                 <h1>Transformation</h1>
-                                <div class="model-list">
-                                    <Index each={autolabModels.autoModels} fallback={<div>Loading...</div>}>
-                                        {(item, index) => (
-                                            <div onClick={() => handleModelTranslationSelect(item())}>
-                                                {item()}
-                                            </div>
-                                        )}
-                                    </Index>
-                                </div>
                                 <button type="button" class="ok" onClick={() => handleModelTranslation()}>
                                     Translate Selected Model To Personal Language
                                 </button>
