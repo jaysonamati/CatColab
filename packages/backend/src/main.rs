@@ -2,7 +2,7 @@ use axum::{
     Router,
     routing::{get, post},
 };
-use composition::composition_route;
+use composition::{composition_route, thread_composition_route, thread_suggestion_route};
 use firebase_auth::FirebaseAuth;
 use socketioxide::SocketIo;
 use sqlx::postgres::PgPoolOptions;
@@ -82,6 +82,8 @@ async fn main() {
             .route("/", get(|| async { "Hello! The CatColab server is running" }))
             .route("/composition", post(composition_route))
             .route("/translation", post(translation_route))
+            .route("/thread_suggestion", post(thread_suggestion_route))
+            .route("/thread_composition", post(thread_composition_route))
             .nest_service("/rpc", qubit_service)
             .layer(CorsLayer::permissive());
         info!("Web server listening at port {}", port);

@@ -58,6 +58,10 @@ export default function AutoModelPage() {
     const [tgtLanguage, setTgtLanguage] = createSignal("");
     const [translatedModel, setTranslatedModel] = createSignal("");
 
+    const [activeModelThreads, setActiveModelThreads] = createSignal([]);
+    const [selectedThread, setSelectedThread] = createSignal("");
+    const [threadComposedModel, setThreadComposedModel] = createSignal("");
+
     const validateAndImport = (jsonString: string) => {
         try {
             const data = JSON.parse(jsonString);
@@ -135,7 +139,19 @@ export default function AutoModelPage() {
             console.log("Communicating with AI");
             console.log("The models in store", autolabModels.autoModels);
             generateCombinedModel(applicationWish())
-        }, 10000);
+        }, 30000);
+
+        onCleanup(() => {
+            clearInterval(intervalId);
+        });
+    });
+
+    createEffect(() => {
+        // let intervalId: number;
+        const intervalId = setInterval(() => {
+            console.log("Generating Active Model threads");
+            generateActiveModelThreads();
+        }, 20000);
 
         onCleanup(() => {
             clearInterval(intervalId);
@@ -221,6 +237,88 @@ export default function AutoModelPage() {
     }
 
 
+    // Define an async function to send translation POST request to our api
+    const generateActiveModelThreads = async () => {
+        const active_model = modelToTranslate();
+        try {
+            // use the fetch method to send an http request to /llm/composition endpoint
+            const response = await fetch('http://localhost:8000/thread_suggestion', {
+                // mode: 'no-cors',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    // 'Access-Control-Allow-Origin':'*',
+                    // 'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS'
+                },
+                body: JSON.stringify({
+                    lib_models: autolabModels.autoModels,
+                    current_model: active_model,
+                    thread_primer: "A very good suggestion"
+                })
+            });
+
+            // Waits for the response to be converted to JSON format and stores it in the data variable
+            const data = await response.json();
+
+            // If successful, updates the output state with the output field from the response data
+            if (response.ok) {
+                setActiveModelThreads(data.suggested_threads)
+                console.log(data.suggested_threads);
+                //validateAndImport(translatedModel())
+
+            } else {
+                console.error(data.error)
+                // setCombinedModel(data.error)
+            }
+
+            // Catches any errors that occur during the fetch request
+        } catch (error) {
+            console.error('Error:', error)
+        }
+    }
+
+
+
+    // Define an async function to send translation POST request to our api
+    const composeActiveModelWithSelectedThread = async () => {
+        const src_model = modelToTranslate();
+        const selected_thread = selectedThread();
+        try {
+            // use the fetch method to send an http request to /llm/composition endpoint
+            const response = await fetch('http://localhost:8000/thread_composition', {
+                // mode: 'no-cors',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    // 'Access-Control-Allow-Origin':'*',
+                    // 'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS'
+                },
+                body: JSON.stringify({
+                    active_model: src_model,
+                    selected_thread: selected_thread,
+                })
+            });
+
+            // Waits for the response to be converted to JSON format and stores it in the data variable
+            const data = await response.json();
+
+            // If successful, updates the output state with the output field from the response data
+            if (response.ok) {
+                setThreadComposedModel(data.composition_text)
+                console.log(data.composition_text);
+                //validateAndImport(translatedModel())
+
+            } else {
+                console.error(data.error)
+                // setCombinedModel(data.error)
+            }
+
+            // Catches any errors that occur during the fetch request
+        } catch (error) {
+            console.error('Error:', error)
+        }
+    }
+
 
 
     const handleWishInput: JSX.EventHandler<HTMLTextAreaElement, Event> = (event) => {
@@ -249,6 +347,20 @@ export default function AutoModelPage() {
         translateSelectedModel();
         console.log("Translation Complete");
 
+    }
+
+    const handleSelectedThread = (thread: string) => {
+        console.log("Selected Thread", thread);
+        setSelectedThread(thread);
+    }
+
+
+    const handleSelectedThreadComposition = (thread: string) => {
+        console.log("Selected Thread", thread);
+        if (selectedThread() === "") {
+            return;
+        }
+        composeActiveModelWithSelectedThread();
     }
 
 
@@ -291,6 +403,9 @@ export default function AutoModelPage() {
                     <li classList={{ selected: tab() === 1 }} onClick={updateTab(1)}>
                         Transform
                     </li>
+                    <li classList={{ selected: tab() === 2 }} onClick={updateTab(2)}>
+                        Threads
+                    </li>
                 </ul>
                 <div class="tab" classList={{ pending: pending() }}>
                     <Suspense fallback={<div class="loader">Loading...</div>}>
@@ -316,6 +431,21 @@ export default function AutoModelPage() {
                                 <h1>Transformation</h1>
                                 <button type="button" class="ok" onClick={() => handleModelTranslation()}>
                                     Translate Selected Model To Personal Language
+                                </button>
+                            </Match>
+                            <Match when={tab() === 2}>
+                                <div class="model-list">
+                                    <Index each={activeModelThreads()} fallback={<div>Loading...</div>}>
+                                        {(thread, index) => (
+                                            <div onClick={() => handleSelectedThread(thread())}>
+                                                {thread()}
+                                            </div>
+                                        )}
+                                    </Index>
+                                </div>
+                                <h1>Threads</h1>
+                                <button type="button" class="ok" onClick={() => handleSelectedThreadComposition()}>
+                                    Compose Active Model with Selected Thread Enhancements
                                 </button>
                             </Match>
                         </Switch>

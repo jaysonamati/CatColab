@@ -26,7 +26,7 @@ import Copy from "lucide-solid/icons/copy";
 import Export from "lucide-solid/icons/download";
 import FilePlus from "lucide-solid/icons/file-plus";
 import Network from "lucide-solid/icons/network";
-import { Blocks } from 'lucide-solid';
+import Blocks from 'lucide-solid/icons/blocks';
 import { AutoLabModelContext } from "../stdlib";
 
 
@@ -52,7 +52,7 @@ export function DocumentMenuItems(props: {
     const api = useApi();
     const navigate = useNavigate();
 
-    const {autolabModels, setAutoLabModels } = useContext(AutoLabModelContext);
+    const { autolabModels, setAutoLabModels } = useContext(AutoLabModelContext);
 
     const unversionedRef = (refId: string): StableRef => ({
         _id: refId,

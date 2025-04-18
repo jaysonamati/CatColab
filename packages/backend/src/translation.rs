@@ -28,6 +28,11 @@ async fn translation_gemini_call(
         api_key
     );
 
+    let thinking_url = format!(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-thinking-exp-01-21:generateContent?key={}",
+        api_key
+    );
+
     let reasoning_url = format!(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-exp-03-25:generateContent?key={}",
         api_key
@@ -88,8 +93,9 @@ async fn translation_gemini_call(
     });
 
     let response: serde_json::Value = client
-        //.post(&url)
-        .post(&reasoning_url)
+        .post(&url)
+        //.post(&reasoning_url)
+        //.post(&thinking_url)
         .json(&model_composition_request_body)
         .send()
         .await?

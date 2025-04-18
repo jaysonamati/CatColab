@@ -16,6 +16,26 @@ pub struct ModelComposition {
     composition_text: String,
 }
 
+#[derive(Deserialize)]
+pub struct DoThreadSuggestion {
+    lib_models: Vec<String>,
+    current_model: String,
+    thread_primer: String,
+}
+
+#[derive(Deserialize)]
+pub struct DoThreadComposition {
+    active_model: String,
+    lib_models: Vec<String>,
+    selected_thread: String,
+}
+
+// the output of our composition handler
+#[derive(Serialize)]
+pub struct ModelThreads {
+    suggested_threads: Vec<String>,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct LlmResponse {
     pub candidates: Vec<Candidate>,
@@ -56,6 +76,16 @@ pub struct TokenDetail {
     pub token_count: u32,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct ThreadSuggestions {
+    threads: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Suggestion {
+    thread: String,
+}
+
 async fn make_ollama_call(
     models_json: &[String],
     application: &String,
@@ -71,6 +101,11 @@ async fn composition_gemini_call(
 
     let url = format!(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={}",
+        api_key
+    );
+
+    let thinking_url = format!(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-thinking-exp-01-21:generateContent?key={}",
         api_key
     );
 
@@ -144,22 +179,230 @@ async fn composition_gemini_call(
             ]
         }],
         "generationConfig": {
-            "response_mime_type": "application/json"
+            //"response_mime_type": "application/json",
             //"response_schema": {
                 //"type": "ARRAY",
                 //"items": {
-                   // "type": "OBJECT",
+                  //  "type": "OBJECT",
                    // "properties": {
-                  //      "recipe_name": {"type":"STRING"}
-                //    }
-              //  }
+                     //   "thread": {"type":"STRING"}
+                    //}
+                //}
             //}
         }
     });
 
     let response: serde_json::Value = client
-        //.post(&url)
-        .post(&reasoning_url)
+        .post(&url)
+        //.post(&reasoning_url)
+        //.post(&thinking_url)
+        .json(&model_composition_request_body)
+        .send()
+        .await?
+        .json()
+        .await?;
+
+    let response_text = response.to_string();
+    let response_parsed: LlmResponse = serde_json::from_str(response_text.as_str()).unwrap();
+    let one_candidate = &response_parsed.candidates[0].content.parts[0].text;
+    let one_candidate_trimmed =
+        one_candidate.trim_start_matches('[').trim_end_matches(']').to_string();
+    //println!("{response_parsed:#?}");
+    //println!("{response:#?}");
+    println!("{response_text:#?}");
+    println!("{one_candidate}");
+    println!("{one_candidate_trimmed}");
+    //Ok(response_text)
+    //Ok(one_candidate.to_string())
+    Ok(one_candidate_trimmed.to_string())
+}
+
+async fn thread_suggestion_gemini_call(
+    current_model: &String,
+    lib_models_json: &[String],
+    user_defined_suggestion: &String,
+) -> Result<Vec<String>, reqwest::Error> {
+    let api_key = dotenvy::var("GEMINI_API_KEY").expect("GEMINI_API_KEY not set");
+
+    let url = format!(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={}",
+        api_key
+    );
+
+    let thinking_url = format!(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-thinking-exp-01-21:generateContent?key={}",
+        api_key
+    );
+
+    let reasoning_url = format!(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-exp-03-25:generateContent?key={}",
+        api_key
+    );
+
+    let client = reqwest::Client::new();
+
+    let system_instruction_text = match fs::read_to_string("thread_instruction0.txt") {
+        Ok(instruction) => instruction,
+        Err(_) => String::from("The default instruction"),
+    };
+
+    let model_thread_suggestion_system_instruction = system_instruction_text;
+
+    let encoded_pdf = String::from("Hello this is a pdf");
+
+    let lib_models_owned = lib_models_json.concat().to_owned();
+    let current_model_owned = current_model.to_owned();
+
+    let prompt_text_for_suggestions = format!(
+        "Suggest possible enhancement options for the following model: {current_model_owned}. The suggestions should be a list of Strings"
+    );
+
+    let thread_suggestion_request_body = json!({
+        "system_instruction": {
+            "parts": {
+                "text": model_thread_suggestion_system_instruction
+            }
+
+        },
+        "contents": [{
+            "parts": [
+                    {"text": prompt_text_for_suggestions}
+            ]
+        }],
+        "generationConfig": {
+            "response_mime_type": "application/json",
+            "response_schema": {
+                "type": "ARRAY",
+                "items": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "thread": {"type":"STRING"}
+                    }
+                }
+            }
+        }
+    });
+
+    let response: serde_json::Value = client
+        .post(&url)
+        //.post(&reasoning_url)
+        //.post(&thinking_url)
+        .json(&thread_suggestion_request_body)
+        .send()
+        .await?
+        .json()
+        .await?;
+
+    let response_text = response.to_string();
+    println!("{response_text:#?}");
+    let response_parsed: LlmResponse = serde_json::from_str(response_text.as_str()).unwrap();
+    let one_candidate = &response_parsed.candidates[0].content.parts[0].text;
+    let thread_suggestions: Vec<Suggestion> = serde_json::from_str(one_candidate).unwrap();
+    let one_candidate_trimmed =
+        one_candidate.trim_start_matches('[').trim_end_matches(']').to_string();
+    println!("{response_text:#?}");
+    println!("{one_candidate}");
+    println!("{one_candidate_trimmed}");
+    let thread_strings: Vec<String> = thread_suggestions.into_iter().map(|s| s.thread).collect();
+    println!("{thread_strings:#?}");
+    Ok(thread_strings)
+}
+
+async fn thread_composition_gemini_call(
+    active_model: &String,
+    lib_models: &[String],
+    selected_thread: &String,
+) -> Result<String, reqwest::Error> {
+    let api_key = dotenvy::var("GEMINI_API_KEY").expect("GEMINI_API_KEY not set");
+
+    let url = format!(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={}",
+        api_key
+    );
+
+    let thinking_url = format!(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-thinking-exp-01-21:generateContent?key={}",
+        api_key
+    );
+
+    let reasoning_url = format!(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-exp-03-25:generateContent?key={}",
+        api_key
+    );
+
+    let client = reqwest::Client::new();
+    let _request_body = json!({
+        "system_instruction": [{
+            "parts": [
+                {"text": "You are a very good chef. Your name is Bruno."}
+            ]
+        }],
+        "contents": [{
+            "parts": [
+                {"text": "List 5 popular cookie recipes"}
+            ]
+        }],
+        "generationConfig": {
+            "response_mime_type": "application/json",
+            "response_schema": {
+                "type": "ARRAY",
+                "items": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "recipe_name": {"type":"STRING"}
+                    }
+                }
+            }
+        }
+    });
+
+    let system_instruction_text = match fs::read_to_string("thread_composition0.txt") {
+        Ok(instruction) => instruction,
+        Err(_) => String::from("The default instruction"),
+    };
+
+    let model_composition_system_instruction = system_instruction_text;
+
+    let encoded_pdf = String::from("Hello this is a pdf");
+
+    let models_owned = lib_models.concat().to_owned();
+    let enhancement_thread = selected_thread.to_owned();
+    let active_model_owned = active_model.to_owned();
+
+    let prompt_text_many_models = format!(
+        "Enhance the following model {active_model_owned} using the thread {enhancement_thread}. Use the following library Models: {models_owned} as source material and ensure that the enhancement only includes content that is similar to {enhancement_thread}."
+    );
+
+    let model_composition_request_body = json!({
+        "system_instruction": {
+            "parts": {
+                "text": model_composition_system_instruction
+            }
+
+        },
+        "contents": [{
+            "parts": [
+                    {"text": prompt_text_many_models}
+            ]
+        }],
+        "generationConfig": {
+            //"response_mime_type": "application/json",
+            //"response_schema": {
+                //"type": "ARRAY",
+                //"items": {
+                  //  "type": "OBJECT",
+                   // "properties": {
+                     //   "thread": {"type":"STRING"}
+                    //}
+                //}
+            //}
+        }
+    });
+
+    let response: serde_json::Value = client
+        .post(&url)
+        //.post(&reasoning_url)
+        //.post(&thinking_url)
         .json(&model_composition_request_body)
         .send()
         .await?
@@ -188,6 +431,53 @@ pub async fn composition_route(Json(payload): Json<DoComposition>) -> Json<Model
     };
     let composition = ModelComposition {
         composition_text: response_text,
+    };
+
+    Json(composition)
+}
+
+pub async fn thread_suggestion_route(
+    Json(payload): Json<DoThreadSuggestion>,
+) -> Json<ModelThreads> {
+    let model_thread_suggestions = match thread_suggestion_gemini_call(
+        &payload.current_model,
+        &payload.lib_models,
+        &payload.thread_primer,
+    )
+    .await
+    {
+        Ok(thread_suggestions) => thread_suggestions,
+        Err(_e) => [
+            String::from("Default suggestion one"),
+            String::from("Default suggestion two"),
+            String::from("Default suggestion 3"),
+        ]
+        .to_vec(),
+    };
+
+    let threads = ModelThreads {
+        suggested_threads: model_thread_suggestions,
+    };
+
+    Json(threads)
+}
+
+pub async fn thread_composition_route(
+    Json(payload): Json<DoThreadComposition>,
+) -> Json<ModelComposition> {
+    let thread_composition = match thread_composition_gemini_call(
+        &payload.active_model,
+        &payload.lib_models,
+        &payload.selected_thread,
+    )
+    .await
+    {
+        Ok(thread_composition) => thread_composition,
+        Err(_e) => String::from("This is an example of thread composition!"),
+    };
+
+    let composition = ModelComposition {
+        composition_text: thread_composition,
     };
 
     Json(composition)
