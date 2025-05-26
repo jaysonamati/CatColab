@@ -390,7 +390,7 @@ export default function AutoModelPage() {
                 <div class="model-list">
                     <Index each={autolabModels.autoModels} fallback={<div>Loading...</div>}>
                         {(item, index) => (
-                            <div onClick={() => handleModelTranslationSelect(item())}>
+                            <div class="model-list-item" onClick={() => handleModelTranslationSelect(item())}>
                                 {JSON.parse(item()).name}
                             </div>
                         )}
