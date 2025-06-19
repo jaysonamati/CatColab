@@ -36,6 +36,12 @@ form button.ok {
     border-radius: 6px;
 }
 
+
+form button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed
+}
+
 form .error {
     color: firebrick;
     font-size: smaller;

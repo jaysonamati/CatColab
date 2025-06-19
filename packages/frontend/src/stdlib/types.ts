@@ -117,3 +117,15 @@ export class TheoryLibrary {
         return grouped;
     }
 }
+
+export class AutolabModelLibrary {
+    public autoModels: Map<string, string>
+
+    constructor() {
+        this.autoModels = new Map();
+    }
+
+    add(ref: string, modelJson: string) {
+        this.autoModels.set(ref, modelJson);
+    }
+}

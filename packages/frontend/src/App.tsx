@@ -16,8 +16,9 @@ import { type Api, ApiContext, createRpcClient, useApi } from "./api";
 import { helpRoutes } from "./help/routes";
 import { createModel } from "./model/document";
 import { PageContainer } from "./page/page_container";
-import { TheoryLibraryContext, stdTheories } from "./stdlib";
+import { AutoLabModelContext, TheoryLibraryContext, stdTheories } from "./stdlib";
 import { ErrorBoundaryDialog } from "./util/errors";
+import { createStore } from "solid-js/store";
 
 const serverUrl = import.meta.env.VITE_SERVER_URL;
 const repoUrl = import.meta.env.VITE_AUTOMERGE_REPO_URL;
@@ -60,11 +61,17 @@ const Root = (props: RouteSectionProps<unknown>) => {
         },
     );
 
+    // This is to initialize the live model library store
+    const [autolabModels, setAutoLabModels] = createStore({
+        autoModels: []
+    });
+
     return (
         <MultiProvider
             values={[
                 [ApiContext, api],
                 [TheoryLibraryContext, stdTheories],
+                [AutoLabModelContext, { autolabModels, setAutoLabModels }],
             ]}
         >
             <FirebaseProvider app={firebaseApp}>
@@ -139,6 +146,11 @@ const routes: RouteDefinition[] = [
         path: "/help",
         component: lazy(() => import("./help/help_container")),
         children: helpRoutes,
+    },
+    {
+        path: "/autocatlab",
+        component: lazy(() => import("./autocatlab/live_autolab")),
+
     },
     {
         path: "/dev/*",

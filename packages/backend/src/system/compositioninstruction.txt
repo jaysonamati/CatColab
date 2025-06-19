@@ -1,0 +1,453 @@
+Prompt:
+
+You will act as an AI specialized in merging and composing multiple JSON representations of causal loop diagrams (CLDs) and their underlying models, with a focus on practical applications in the domain of interpersonal relationships. I will provide you with an array of JSON documents, each representing a CLD that includes formal declarations (objects and morphisms), metadata, and rich-text cells. Your task is twofold: first, merge all these models into a single cohesive model while preserving their structural and mathematical integrity; second, analyze the composition of these models to provide actionable insights that help a practitioner understand and improve dynamics in interpersonal relationships.
+
+Please adhere to the following guidelines:
+
+Structural Preservation: Retain all crucial structural information, metadata, and rich-text content from each input model. Ensure every cell—whether rich-text, formal, or stem—is preserved in the output.
+
+You can create new variables (objects) and relationships (morphisms) to link the various models together into one Causal Loop Diagram that doesn't contain
+any disconnected variables. Always ensure this is done. No unconnected models in the output. Also make sure the links you create have names that match the
+context of the models.
+
+Conflict Resolution: When overlapping or similar objects (e.g., conceptually identical entities with slightly different names) are encountered, merge them using a weighted approach that respects all input sources. Document your assumptions and decisions in an additional rich-text cell if necessary.
+
+Applied Category Theory: Use concepts from applied category theory—specifically functors and pushouts—to guide the merging and composition process. Compute a functorial pushout over the common substructures of the input models to ensure a coherent merge.
+
+Model Composition for Practical Applications: Beyond merging, analyze the resulting model to generate insights for practical applications. In a separate rich-text cell, provide a detailed explanation of how the composed model can be applied to real-world scenarios in the domain of interpersonal relationships. This explanation should address areas such as conflict resolution, communication enhancement, and the overall improvement of relationship dynamics.
+
+Language Consistency: Preserve the original language, naming conventions, and metadata from all parent models.
+
+Output: Your final answer should be a valid JSON document (formatted according to the above provided schema) representing the merged and composed model of all input models. Use a weighted, functorial pushout approach from applied category theory to merge the models. Ensure that overlapping concepts are merged appropriately, all metadata is preserved, and all UUIDs in the final output are valid. Additionally, include a separate rich-text cell that offers a detailed explanation of how the composed model can be applied to improve and analyze interpersonal relationships—addressing aspects such as conflict resolution, communication enhancement, and overall relational dynamics. ONLY OUTPUT A VALID JSON COMBINED MODEL. Nothing else or else!!!! Just output the JSON ONLY NO MARKDOWN FORMATING. The Output should start with { and end with } NO MARKDOWN!!.
+
+Please don't output markdown. Just the JSON Output
+
+Expected Final Output Schema:
+{
+  "$ref": "#/definitions/ModelDocument",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Cell<ModelJudgment>": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/RichTextCell"
+        },
+        {
+          "$ref": "#/definitions/FormalCell%3CModelJudgment%3E"
+        },
+        {
+          "$ref": "#/definitions/StemCell"
+        }
+      ],
+      "description": "A cell in a notebook. Any notebook can contain rich text cells, and support for editing rich text is built into the notebook editor. In addition, notebooks can contain cells of custom type, which is typically formal in contrast to natural text."
+    },
+    "FormalCell<ModelJudgment>": {
+      "additionalProperties": false,
+      "description": "A cell containing custom data, usually a formal object.",
+      "properties": {
+        "content": {
+          "$ref": "#/definitions/ModelJudgment"
+        },
+        "id": {
+          "$ref": "#/definitions/Uuid"
+        },
+        "tag": {
+          "const": "formal",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tag",
+        "id",
+        "content"
+      ],
+      "type": "object"
+    },
+    "ModelDecl": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ObjectDecl"
+        },
+        {
+          "$ref": "#/definitions/MorphismDecl"
+        }
+      ],
+      "description": "A declaration in the definition of a model."
+    },
+    "ModelDocument": {
+      "additionalProperties": false,
+      "description": "A document defining a model.",
+      "properties": {
+        "name": {
+          "description": "Human-readable name of the document.",
+          "type": "string"
+        },
+        "notebook": {
+          "$ref": "#/definitions/Notebook%3CModelJudgment%3E",
+          "description": "Content of the model, formal and informal."
+        },
+        "theory": {
+          "description": "Identifier of double theory that the model is of.",
+          "type": "string"
+        },
+        "type": {
+          "const": "model",
+          "description": "Type of the document, such as \"model\" or \"diagram\".",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "notebook",
+        "theory",
+        "type"
+      ],
+      "type": "object"
+    },
+    "ModelJudgment": {
+      "$ref": "#/definitions/ModelDecl",
+      "description": "A judgment in the definition of a model. TODO: Judgments should be declarations *or* morphism equations."
+    },
+    "Mor": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/Uuid"
+            },
+            "tag": {
+              "const": "Basic",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "type": "string"
+            },
+            "tag": {
+              "const": "Composite",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "additionalProperties": false,
+              "properties": {
+                "cod": {
+                  "$ref": "#/definitions/Mor"
+                },
+                "dom": {
+                  "$ref": "#/definitions/Mor"
+                },
+                "post": {
+                  "$ref": "#/definitions/Mor"
+                },
+                "pre": {
+                  "$ref": "#/definitions/Mor"
+                }
+              },
+              "required": [
+                "dom",
+                "cod",
+                "pre",
+                "post"
+              ],
+              "type": "object"
+            },
+            "tag": {
+              "const": "TabulatorSquare",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        }
+      ],
+      "description": "A morphism in a model of a double theory."
+    },
+    "MorType": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/Ustr"
+            },
+            "tag": {
+              "const": "Basic",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/ObType"
+            },
+            "tag": {
+              "const": "Hom",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        }
+      ],
+      "description": "Morphism type in a double theory."
+    },
+    "MorphismDecl": {
+      "additionalProperties": false,
+      "description": "Declaration of a morphism in a model.",
+      "properties": {
+        "cod": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Ob"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Codomain of morphism, if defined."
+        },
+        "dom": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Ob"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Domain of morphism, if defined."
+        },
+        "id": {
+          "$ref": "#/definitions/Uuid",
+          "description": "Globally unique identifier of morphism."
+        },
+        "morType": {
+          "$ref": "#/definitions/MorType",
+          "description": "The morphism's type in the double theory."
+        },
+        "name": {
+          "description": "Human-readable name of morphism.",
+          "type": "string"
+        },
+        "tag": {
+          "const": "morphism",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cod",
+        "dom",
+        "id",
+        "morType",
+        "name",
+        "tag"
+      ],
+      "type": "object"
+    },
+    "Notebook<ModelJudgment>": {
+      "additionalProperties": false,
+      "description": "Data type for a notebook. A notebook is nothing more than a list of cells. Any metadata associated with a notebook, such as its title, is stored elsewhere.",
+      "properties": {
+        "cells": {
+          "items": {
+            "$ref": "#/definitions/Cell%3CModelJudgment%3E"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "cells"
+      ],
+      "type": "object"
+    },
+    "Ob": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/Uuid"
+            },
+            "tag": {
+              "const": "Basic",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/Mor"
+            },
+            "tag": {
+              "const": "Tabulated",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        }
+      ],
+      "description": "An object in a model of a double theory."
+    },
+    "ObType": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/Ustr"
+            },
+            "tag": {
+              "const": "Basic",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "$ref": "#/definitions/MorType"
+            },
+            "tag": {
+              "const": "Tabulator",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tag",
+            "content"
+          ],
+          "type": "object"
+        }
+      ],
+      "description": "Object type in a double theory."
+    },
+    "ObjectDecl": {
+      "additionalProperties": false,
+      "description": "Declaration of an object in a model.",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/Uuid",
+          "description": "Globally unique identifier of object."
+        },
+        "name": {
+          "description": "Human-readable name of object.",
+          "type": "string"
+        },
+        "obType": {
+          "$ref": "#/definitions/ObType",
+          "description": "The object's type in the double theory."
+        },
+        "tag": {
+          "const": "object",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "obType",
+        "tag"
+      ],
+      "type": "object"
+    },
+    "RichTextCell": {
+      "additionalProperties": false,
+      "description": "A cell containing rich text.",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/definitions/Uuid"
+        },
+        "tag": {
+          "const": "rich-text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tag",
+        "id",
+        "content"
+      ],
+      "type": "object"
+    },
+    "StemCell": {
+      "additionalProperties": false,
+      "description": "A stem cell is a placeholder which will be converted into another cell. Stem cells are created when the user opens the \"new cell\" menu and are destroyed and replaced when a type for the new cell is selected.",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/Uuid"
+        },
+        "tag": {
+          "const": "stem",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tag",
+        "id"
+      ],
+      "type": "object"
+    },
+    "Ustr": {
+      "type": "string"
+    },
+    "Uuid": {
+      "type": "string"
+    }
+  }
+}
+
+
+

@@ -1,4 +1,8 @@
-use axum::{Router, routing::get};
+use autolab::{composition_route, translation_route};
+use axum::{
+    Router,
+    routing::{get, post},
+};
 use firebase_auth::FirebaseAuth;
 use socketioxide::SocketIo;
 use sqlx::postgres::PgPoolOptions;
@@ -10,6 +14,7 @@ use tracing_subscriber::filter::{EnvFilter, LevelFilter};
 
 mod app;
 mod auth;
+mod autolab;
 mod document;
 mod rpc;
 mod socket;
@@ -81,6 +86,8 @@ async fn main() {
 
         let app = Router::new()
             .route("/", get(|| async { "Hello! The CatColab server is running" }))
+            .route("/composition", post(composition_route))
+            .route("/translation", post(translation_route))
             .nest_service("/rpc", qubit_service)
             .layer(CorsLayer::permissive());
         info!("Web server listening at port {}", port);

@@ -13,6 +13,7 @@ import {
     newFormalCell,
 } from "../notebook";
 import {
+    AutoCatlabButton,
     DocumentBreadcrumbs,
     DocumentLoadingScreen,
     DocumentMenu,
@@ -65,6 +66,7 @@ export function ModelDocumentEditor(props: {
                 <DocumentMenu liveDocument={props.liveModel} />
                 <DocumentBreadcrumbs document={props.liveModel} />
                 <span class="filler" />
+                <AutoCatlabButton />
                 <TheoryHelpButton theory={props.liveModel.theory()} />
                 <PermissionsButton
                     permissions={props.liveModel.liveDoc.permissions}
