@@ -346,7 +346,7 @@ export default function AutoModelPage() {
 
     const handleModelTranslation = () => {
         console.log("Translation!!");
-        if ((modelToTranslate() === "") || (tgtLanguage() == "")) {
+        if ((modelToTranslate() === "") || (tgtLanguage() === "")) {
             console.log("Missing data!!");
             return;
         }

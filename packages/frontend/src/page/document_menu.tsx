@@ -20,15 +20,14 @@ import {
 import { assertExhaustive } from "../util/assert_exhaustive";
 import { copyToClipboard, downloadJson } from "../util/json_export";
 
+import Blocks from "lucide-solid/icons/blocks";
 import ChartSpline from "lucide-solid/icons/chart-spline";
 import CopyToClipboard from "lucide-solid/icons/clipboard-copy";
 import Copy from "lucide-solid/icons/copy";
 import Export from "lucide-solid/icons/download";
 import FilePlus from "lucide-solid/icons/file-plus";
 import Network from "lucide-solid/icons/network";
-import Blocks from 'lucide-solid/icons/blocks';
 import { AutoLabModelContext } from "../stdlib";
-
 
 /** Hamburger menu for any model or diagram document. */
 export function DocumentMenu(props: {

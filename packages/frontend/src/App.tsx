@@ -12,13 +12,13 @@ import { ErrorBoundary, Show, createResource, createSignal, lazy } from "solid-j
 
 import Dialog, { Content, Portal } from "@corvu/dialog";
 import { getAuth, signOut } from "firebase/auth";
+import { createStore } from "solid-js/store";
 import { type Api, ApiContext, createRpcClient, useApi } from "./api";
 import { helpRoutes } from "./help/routes";
 import { createModel } from "./model/document";
 import { PageContainer } from "./page/page_container";
 import { AutoLabModelContext, TheoryLibraryContext, stdTheories } from "./stdlib";
 import { ErrorBoundaryDialog } from "./util/errors";
-import { createStore } from "solid-js/store";
 
 const serverUrl = import.meta.env.VITE_SERVER_URL;
 const repoUrl = import.meta.env.VITE_AUTOMERGE_REPO_URL;
@@ -63,7 +63,7 @@ const Root = (props: RouteSectionProps<unknown>) => {
 
     // This is to initialize the live model library store
     const [autolabModels, setAutoLabModels] = createStore({
-        autoModels: []
+        autoModels: [],
     });
 
     return (
@@ -150,7 +150,6 @@ const routes: RouteDefinition[] = [
     {
         path: "/autocatlab",
         component: lazy(() => import("./autocatlab/live_autolab")),
-
     },
     {
         path: "/dev/*",

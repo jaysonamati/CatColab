@@ -119,7 +119,7 @@ export class TheoryLibrary {
 }
 
 export class AutolabModelLibrary {
-    public autoModels: Map<string, string>
+    public autoModels: Map<string, string>;
 
     constructor() {
         this.autoModels = new Map();
